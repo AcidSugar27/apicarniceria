@@ -1,11 +1,12 @@
 use actix_web::{
-    get, post,
+    get, post, delete,
     web::{Data, Json, Path},
     Responder, HttpResponse
 };
 use serde::{Deserialize, Serialize};
 use sqlx::{self, FromRow};
 use crate::AppState;
+
 
 #[derive(Serialize, FromRow)]
 struct Producto {
@@ -38,21 +39,23 @@ pub struct CreateClienteBody {
     pub telefono: String,
     pub presupuesto: f32,
 }
-
+/*
+#[derive(Deserialize)]
 pub struct UpdateProductoBody {
     pub nombre: Option<String>,
     pub categoria: Option<String>,
     pub precio: Option<f32>,
     pub cantidad: Option<i32>,
 }
-
+    */
+/*
 #[derive(Deserialize)]
 pub struct UpdateClienteBody {
     pub nombre: Option<String>,
     pub telefono: Option<String>,
     pub presupuesto: Option<f32>,
 }
-
+*/
 #[get("/productos")]
 pub async fn fetch_productos(state: Data<AppState>) -> impl Responder {
     match sqlx::query_as::<_, Producto>("SELECT id, nombre, categoria, precio, cantidad FROM productos")
@@ -107,6 +110,7 @@ pub async fn create_cliente(state: Data<AppState>, body: Json<CreateClienteBody>
         Err(_) => HttpResponse::InternalServerError().json("Failed to create cliente"),
     }
 }
+/*
 #[put("/productos/{id}")]
 pub async fn update_producto(
     state: Data<AppState>,
@@ -114,8 +118,8 @@ pub async fn update_producto(
     body: Json<UpdateProductoBody>
 ) -> impl Responder {
     let mut query = "UPDATE productos SET".to_string();
-    let mut params: Vec<&(dyn sqlx::Encode<'_, Postgres> + Sync)> = Vec::new();
     let mut set_clauses: Vec<String> = Vec::new();
+    let mut params: Vec<&(dyn sqlx::Encode<'_, Postgres> + Sync)> = Vec::new();
 
     if let Some(nombre) = &body.nombre {
         set_clauses.push("nombre = $1".to_string());
@@ -138,11 +142,14 @@ pub async fn update_producto(
         return HttpResponse::BadRequest().json("No fields to update");
     }
 
+    // Concatena las cláusulas SET a la consulta
     query.push_str(&set_clauses.join(", "));
     query.push_str(" WHERE id = $5 RETURNING id, nombre, categoria, precio, cantidad");
 
+    // Agrega el ID al final de los parámetros
     params.push(&id);
 
+    // Ejecuta la consulta
     match sqlx::query_as::<_, Producto>(&query)
         .bind(params)
         .fetch_one(&state.db)
@@ -160,8 +167,8 @@ pub async fn update_cliente(
     body: Json<UpdateClienteBody>
 ) -> impl Responder {
     let mut query = "UPDATE clientes SET".to_string();
-    let mut params: Vec<&(dyn sqlx::Encode<'_, Postgres> + Sync)> = Vec::new();
     let mut set_clauses: Vec<String> = Vec::new();
+    let mut params: Vec<&(dyn sqlx::Encode<'_, Postgres> + Sync)> = Vec::new();
 
     if let Some(nombre) = &body.nombre {
         set_clauses.push("nombre = $1".to_string());
@@ -180,11 +187,14 @@ pub async fn update_cliente(
         return HttpResponse::BadRequest().json("No fields to update");
     }
 
+    // Concatena las cláusulas SET a la consulta
     query.push_str(&set_clauses.join(", "));
     query.push_str(" WHERE id = $4 RETURNING id, nombre, telefono, presupuesto");
 
+    // Agrega el ID al final de los parámetros
     params.push(&id);
 
+    // Ejecuta la consulta
     match sqlx::query_as::<_, Cliente>(&query)
         .bind(params)
         .fetch_one(&state.db)
@@ -194,6 +204,7 @@ pub async fn update_cliente(
         Err(_) => HttpResponse::InternalServerError().json("Failed to update cliente"),
     }
 }
+*/
 
 #[delete("/productos/{id}")]
 pub async fn delete_producto(state: Data<AppState>, id: Path<i32>) -> impl Responder {
